@@ -48,7 +48,7 @@ class Answer(models.Model):
 class Vote(models.Model):
     voter = models.ForeignKey(Player, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    answer = models.ForeignKey(Answer, on_delete=models.CASCADE)
+    answer = models.ForeignKey(Answer, null=True, on_delete=models.CASCADE)
 
     # game is redundat to voter.game, but repeats for
     # query optimization (guessing here)

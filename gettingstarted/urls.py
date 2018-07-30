@@ -7,8 +7,10 @@ admin.autodiscover()
 import psykahut.views
 
 urlpatterns = [
-    url(r'^$', psykahut.views.index, name='index'),
-    url(r'^register/$', psykahut.views.register, name='index'),
-    url(r'^open_question/$', psykahut.views.open_question, name='index'),
+    url(r'^$', psykahut.views.index),
+    url(r'^register/$', psykahut.views.register),
+    url(r'^open_question/$', psykahut.views.open_question),
+    url(r'^quiz/$', psykahut.views.answer_quiz),
+    path('summary/<int:question_id>/', psykahut.views.summary),
     path('admin/', admin.site.urls),
 ]
