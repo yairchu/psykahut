@@ -1,0 +1,19 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+</head>
+
+<body dir="rtl">
+  <h2>
+    {{question}}
+  </h2>
+  <form action="/open_question/" method="post">
+    {% csrf_token %}
+    <label for="answer">המצא תשובה נכונה או אמינה לשאלה:</label>
+    <input type="text" id="answer" name="answer" autofocus="autofocus" minlength="2" maxlength="120" size=80>
+  </form>
+
+</body>
+
+</html>

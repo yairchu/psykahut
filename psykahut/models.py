@@ -19,8 +19,10 @@ class Game(models.Model):
     started = models.DateTimeField('date created', auto_now_add=True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     questions_asked = models.ManyToManyField(Question, blank=True)
+    current = models.ForeignKey(Question, null=True, on_delete=models.CASCADE, related_name='current')
+    num_psych_answers = models.IntegerField(default=4)
     def __str__(self):
-        return 'Game(%s, %s)' % (self.topic, self.started)
+        return 'Game(%s, %s)' % (self.current or self.topic, self.started)
 
 class Player(models.Model):
     name = models.CharField(max_length=200)
