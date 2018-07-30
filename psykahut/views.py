@@ -23,17 +23,38 @@ def current_game_with_question():
         assert game.current is not None
     return game
 
+def cur_answers(game):
+    return models.Answer.objects.filter(game=game, question=game.current)
+
 def index(request):
     player = request.session.get('player')
     if player is None:
         return render(request, 'welcome.html')
     game = current_game_with_question()
-    answers = models.Answer.objects.filter(game=game, question=game.current)
-    if len(answers) < game.num_psych_answers:
-        return render(request, 'open_question.html', {
-            'question': game.current.question_text
-        })
-    return HttpResponse("Hello, world. You're at the psykahut index.")
+    answers = cur_answers(game)
+    if len(answers) >= game.num_psych_answers:
+        return quiz(request, game, answers)
+    for answer in answers:
+        if answer.author.id == player:
+            return render(request, 'wait_for_answers.html')
+    return render(request, 'open_question.html', {
+        'question': game.current.question_text,
+    })
+
+def permutation_order_avail(game, answers):
+    perm_taken = set(x.permutation_order for x in answers)
+    return list(set(range(game.num_psych_answers+1))-perm_taken)
+
+def quiz(request, game, answers):
+    ordered_answers = [(x.permutation_order, x.text) for x in answers]
+    [real_answer_pos] = permutation_order_avail(game, answers)
+    ordered_answers.append((real_answer_pos, game.current.answer_text))
+    ordered_answers.sort()
+    return render(request, 'quiz.html', {
+        'question': game.current.question_text,
+        'answers': [{'id': x, 'text': y} for x, y in ordered_answers],
+        'num_answers': len(ordered_answers),
+    })
 
 @require_POST
 def register(request):
@@ -42,4 +63,30 @@ def register(request):
         player, created = models.Player.objects.get_or_create(
             name=name, game=current_game())
         request.session["player"] = player.id
+    return HttpResponseRedirect('/')
+
+@require_POST
+def open_question(request):
+    answer = request.POST['answer']
+    player = models.Player.objects.select_related(
+        'game', 'game__current').get(
+        id=request.session.get('player'))
+    if answer == player.game.current.answer_text:
+        return HttpResponseRedirect('/')
+    while True:
+        try:
+            with transaction.atomic():
+                answers = cur_answers(player.game)
+                for x in answers:
+                    if answer == x.text:
+                        break
+                if len(answers) < player.game.num_psych_answers:
+                    perm_avail = permutation_order_avail(player.game, answers)
+                    answer, created = models.Answer.objects.get_or_create(
+                        text=answer, author=player,
+                        permutation_order=random.choice(perm_avail),
+                        game=player.game, question=player.game.current)
+        except IntegrityError:
+            raise
+        break
     return HttpResponseRedirect('/')

@@ -1,0 +1,26 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+</head>
+
+<body dir="rtl">
+  <h2>
+    {{question}}
+  </h2>
+  <form action="/quiz/" method="post">
+    {% csrf_token %}
+    <label for="answer">מהי התשובה הנכונה:</label>
+    <p>
+      <select id="answer" name="answer" size={{num_answers}} required>
+        {% for answer in answers %}
+          <option value="{{answer.id}}">{{answer.text}}</option>
+        {% endfor %}
+      </select>
+    </p>
+    <input type="submit" class="submit" value="Submit" />
+  </form>
+
+</body>
+
+</html>

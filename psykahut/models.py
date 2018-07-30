@@ -34,11 +34,16 @@ class Player(models.Model):
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     author = models.ForeignKey(Player, on_delete=models.CASCADE)
+    text = models.CharField(max_length=200)
     permutation_order = models.IntegerField()
 
     # game is redundat to author.game, but repeats for
     # query optimization (guessing here)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s (%s)' % (
+            self.question.question_text, self.text, self.game.started)
 
 class Vote(models.Model):
     voter = models.ForeignKey(Player, on_delete=models.CASCADE)
