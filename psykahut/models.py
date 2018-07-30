@@ -19,11 +19,15 @@ class Game(models.Model):
     started = models.DateTimeField('date created', auto_now_add=True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     questions_asked = models.ManyToManyField(Question, blank=True)
+    def __str__(self):
+        return 'Game(%s, %s)' % (self.topic, self.started)
 
 class Player(models.Model):
     name = models.CharField(max_length=200)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
+    def __str__(self):
+        return '%s: %s' % (self.name, self.score)
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

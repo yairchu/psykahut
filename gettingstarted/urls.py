@@ -8,5 +8,6 @@ import psykahut.views
 
 urlpatterns = [
     url(r'^$', psykahut.views.index, name='index'),
+    url(r'^register/$', psykahut.views.register, name='index'),
     path('admin/', admin.site.urls),
 ]
