@@ -1,0 +1,59 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+</head>
+
+<body dir="rtl">
+  <h2>
+    {{question}}
+  </h2>
+  <ul>
+    {% for answer in answers %}
+      <li>
+        {{answer.text}} - {{answer.author}}: {{answer.votes.count}}
+        {% if answer.votes.voters %}
+          -
+          {% for voter in answer.votes.voters %}
+            {{voter}}
+            {% if not forloop.last %}
+            ,
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <h2>
+    ניקוד:
+  </h2>
+  <ul>
+    {% for player in scores %}
+      <li>
+        {{player.name}}: {{player.score}}
+      </li>
+    {% endfor %}
+  </ul>
+
+  {% if new_question %}
+    <h2>
+      שאלה הבאה:
+    </h2>
+    <h3>
+      {{new_question}}
+    </h3>
+    <form action="/open_question/" method="post">
+      {% csrf_token %}
+      <label for="answer">המצא תשובה נכונה או אמינה לשאלה:</label>
+      <input type="text" id="answer" name="answer" autofocus="autofocus" minlength="2" maxlength="120" size=80>
+    </form>
+  {% else %}
+    <h2>
+      זהו נגמר
+    </h2>
+    יאללה בלאגן!
+  {% endif %}
+</body>
+
+</html>
