@@ -102,20 +102,9 @@ def answer_quiz(request):
     vote, created = models.Vote.objects.get_or_create(voter=player, question=game.current, game=game)
     if created:
         for x in cur_answers(player.game):
-            if answer != x.permutation_order:
-                continue
-            vote.answer = x
-            if player == x.author:
-                player.score -= 3
+            if answer == x.permutation_order:
+                vote.answer = x
                 break
-            x.author += 1
-            break
-        else:
-            # Correct answer!
-            player.score += 3
-        with transaction.atomic():
-            player.save()
-            vote.save()
     return HttpResponseRedirect('/')
 
 @require_POST
@@ -179,7 +168,22 @@ def start_new(request):
 @require_POST
 def next_question(request):
     game = current_game()
-    votes = models.Vote.objects.filter(question=game.current, game=game)
+    players_to_update = set()
+    for vote in models.Vote.objects.filter(question=game.current, game=game):
+        if vote.answer is None:
+            # Correct answer
+            vote.voter.score += 3
+            players_to_update.add(vote.voter)
+        elif vote.voter == vote.answer.author:
+            vote.voter.score -= 3
+            players_to_update.add(vote.voter)
+        else:
+            vote.answer.author.score += 1
+            players_to_update.add(vote.answer.author)
+    with transaction.atomic():
+        for player in players_to_update:
+            player.save()
+
     asked = set(game.questions_asked.all())
     asked.add(game.current)
     questions_pool = [
