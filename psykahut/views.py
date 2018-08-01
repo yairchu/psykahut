@@ -47,7 +47,7 @@ def index(request):
             return HttpResponseRedirect('/summary/%d/' % game.current.id)
         return ask_quiz(request, game, answers)
     for answer in answers:
-        if answer.author.id == player:
+        if answer.author == player:
             return render(request, 'wait_for_answers.html')
     return render(request, 'open_question.html', {
         'question': game.current.question_text,
