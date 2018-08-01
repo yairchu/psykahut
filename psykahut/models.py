@@ -54,3 +54,6 @@ class Vote(models.Model):
     # game is redundat to voter.game, but repeats for
     # query optimization (guessing here)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s is %s' % (self.voter, self.question, self.answer)

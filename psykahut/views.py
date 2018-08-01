@@ -116,6 +116,7 @@ def answer_quiz(request):
         for x in cur_answers(player.game):
             if answer == x.permutation_order:
                 vote.answer = x
+                vote.save()
                 break
     return HttpResponseRedirect('/')
 
