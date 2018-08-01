@@ -8,6 +8,8 @@ import psykahut.views
 
 urlpatterns = [
     url(r'^$', psykahut.views.index),
+    url(r'^manage/$', psykahut.views.manage),
+    url(r'^manage/start_new/$', psykahut.views.start_new),
     url(r'^register/$', psykahut.views.register),
     url(r'^open_question/$', psykahut.views.open_question),
     url(r'^quiz/$', psykahut.views.answer_quiz),

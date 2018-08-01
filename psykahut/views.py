@@ -183,3 +183,21 @@ def summary(request, question_id):
         'new_question': game.current.question_text if game.current else None,
         'scores': leading_players,
         })
+
+def manage(request):
+    return render(request, 'manage_game.html', {
+        'game': current_game(),
+    })
+
+@require_POST
+def start_new(request):
+    try:
+        topic = models.Topic.objects.get(name=request.POST['topic'])
+    except models.Topic.DoesNotExist:
+        return HttpResponseRedirect('/manage/')
+    game = models.Game(topic=topic)
+    num_answers = request.POST.get('num_answers')
+    if num_answers:
+        game.num_psych_answers = num_answers
+    game.save()
+    return HttpResponseRedirect('/manage/')

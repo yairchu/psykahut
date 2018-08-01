@@ -1,0 +1,27 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+</head>
+
+<body dir="rtl">
+  <h2>
+    <span style="color:gray">פ</span>סייקאהווווווט!
+  </h2>
+  <p>
+    משחק נוכחי - {{game.topic}} - {{game.started}}
+  </p>
+  <form action="/manage/start_new/" method="post">
+    {% csrf_token %}
+    <div>
+      <label for="topic">התחל משחק חדש:</label>
+      <input type="text" id="topic" name="topic" />
+    </div>
+    <div>
+      <label for="num_answers">כמות תשובות פתוחות:</label>
+      <input id="num_answers" type="number" name="num_answers" />
+    </div>
+    <input type="submit" />
+  </form>
+</body>
+</html>
