@@ -7,6 +7,23 @@
   <p>
     {{game.topic}} - {{game.started}}
   </p>
+  <h3>
+    {{game.current.question_text}}
+  </h3>
+  <ul>
+    <li>
+      {{num_answers}} תשובות
+    </li>
+    <li>
+      {{num_votes}} הצבעות
+    </li>
+    <li>
+      <form action="/manage/next/" method="post">
+        {% csrf_token %}
+        <input type="submit" value="המשך" />
+      </form>
+    </li>
+  </ul>
   <h2>התחל משחק חדש:</h2>
   <form action="/manage/start_new/" method="post">
     {% csrf_token %}

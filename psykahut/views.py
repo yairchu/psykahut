@@ -128,35 +128,11 @@ def open_question(request):
 
 def summary(request, question_id):
     game = current_game_with_question()
-    if question_id == game.current.id:
-        question = game.current
-        votes = models.Vote.objects.filter(question=question, game=game)
-        players = models.Player.objects.filter(game=game)
-        if len(votes) < len(players):
-            return render(request, 'wait_for_answers.html')
-        asked = set(game.questions_asked.all())
-        asked.add(question)
-        questions_pool = [
-            x for x in models.Question.objects.filter(topic=game.topic).all()
-            if x not in asked]
-        try:
-            with transaction.atomic():
-                game = current_game()
-                if question_id == game.current.id:
-                    game.questions_asked.add(question)
-                    if questions_pool:
-                        game.current = random.choice(questions_pool)
-                    else:
-                        game.current = None
-                    game.save()
-        except IntegrityError:
-            game = current_game()
-            votes = models.Vote.objects.filter(
-                question=question, game=game).select_related('voter')
-    else:
-        question = models.Question.objects.get(id=question_id)
-        votes = models.Vote.objects.filter(
-            question=question, game=game).select_related('voter')
+    question = models.Question.objects.get(id=question_id)
+    if question == game.current:
+        return render(request, 'wait_for_answers.html')
+    votes = models.Vote.objects.filter(
+        question=question, game=game).select_related('voter')
     def votes_for(answer):
         cur = [x for x in votes if x.answer == answer]
         return {
@@ -185,8 +161,11 @@ def summary(request, question_id):
         })
 
 def manage(request):
+    game = current_game()
     return render(request, 'manage_game.html', {
-        'game': current_game(),
+        'game': game,
+        'num_answers': len(models.Answer.objects.filter(game=game, question=game.current)),
+        'num_votes': len(models.Vote.objects.filter(game=game, question=game.current)),
     })
 
 @require_POST
@@ -200,4 +179,22 @@ def start_new(request):
     if num_answers:
         game.num_psych_answers = num_answers
     game.save()
+    return HttpResponseRedirect('/manage/')
+
+@require_POST
+def next_question(request):
+    game = current_game_with_question()
+    votes = models.Vote.objects.filter(question=game.current, game=game)
+    asked = set(game.questions_asked.all())
+    asked.add(game.current)
+    questions_pool = [
+        x for x in models.Question.objects.filter(topic=game.topic).all()
+        if x not in asked]
+    with transaction.atomic():
+        game.questions_asked.add(game.current)
+        if questions_pool:
+            game.current = random.choice(questions_pool)
+        else:
+            game.current = None
+        game.save()
     return HttpResponseRedirect('/manage/')
