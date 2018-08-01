@@ -141,7 +141,7 @@ def open_question(request):
                 answers = cur_answers(player.game)
                 for x in answers:
                     if answer == x.text:
-                        break
+                        return HttpResponseRedirect('/')
                 if len(answers) < player.game.num_psych_answers:
                     perm_avail = permutation_order_avail(player.game, answers)
                     answer, created = models.Answer.objects.get_or_create(
