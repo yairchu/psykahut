@@ -59,9 +59,10 @@ def summary(game):
         'scores': leading_players,
         }
 
-def wait_for_answers(request, game):
+def wait_for_answers(request, game, is_quiz):
     return render(request, 'wait_for_answers.html', {
         'cur': game.current.id,
+        'is_quiz': 'true' if is_quiz else 'false'
     })
 
 def is_in_quiz(game, answers):
@@ -77,15 +78,16 @@ def index(request):
         if models.Vote.objects.filter(
             voter=player, game=game, question=game.current
             ).exists():
-            return wait_for_answers(request, game)
+            return wait_for_answers(request, game, True)
         return ask_quiz(request, game, answers)
     for answer in answers:
         if answer.author == player:
-            return wait_for_answers(request, game)
+            return wait_for_answers(request, game, False)
     return render(request, 'open_question.html', {
         'question': game.current and game.current.question_text,
         'summary': summary(game),
         'cur': game.current and game.current.id,
+        'is_quiz': 'false',
     })
 
 def permutation_order_avail(game, answers):
