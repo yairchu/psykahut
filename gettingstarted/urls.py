@@ -14,5 +14,6 @@ urlpatterns = [
     url(r'^register/$', psykahut.views.register),
     url(r'^open_question/$', psykahut.views.open_question),
     url(r'^quiz/$', psykahut.views.answer_quiz),
+    url(r'^api/cur_question/$', psykahut.views.cur_question_id),
     path('admin/', admin.site.urls),
 ]

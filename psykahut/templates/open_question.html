@@ -12,6 +12,17 @@
       <label for="answer">המצא תשובה נכונה או אמינה לשאלה:</label>
       <input type="text" id="answer" name="answer" autofocus="autofocus" minlength="2" maxlength="120" size=80>
     </form>
+
+    <script>
+      setInterval(function() {
+        var req = new XMLHttpRequest();
+        req.open("GET", '/api/cur_question/', false);
+        req.send(null);
+        var obj = JSON.parse(req.responseText);
+        if (obj == null || obj.cur != {{cur}} || obj.is_quiz)
+          location.reload(true);
+      }, 1500);
+    </script>
   {% else %}
     <h2>
       זהו נגמר

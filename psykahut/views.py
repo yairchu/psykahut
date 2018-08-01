@@ -1,3 +1,4 @@
+import json
 import random
 
 from django.db import IntegrityError, transaction
@@ -58,24 +59,33 @@ def summary(game):
         'scores': leading_players,
         }
 
+def wait_for_answers(request, game):
+    return render(request, 'wait_for_answers.html', {
+        'cur': game.current.id,
+    })
+
+def is_in_quiz(game, answers):
+    return len(answers) >= game.num_psych_answers
+
 def index(request):
     game = current_game()
     player = get_player(request)
     if player is None or player.game != game:
         return render(request, 'welcome.html')
     answers = cur_answers(game)
-    if len(answers) >= game.num_psych_answers:
+    if is_in_quiz(game, answers):
         if models.Vote.objects.filter(
             voter=player, game=game, question=game.current
             ).exists():
-            return render(request, 'wait_for_answers.html')
+            return wait_for_answers(request, game)
         return ask_quiz(request, game, answers)
     for answer in answers:
         if answer.author == player:
-            return render(request, 'wait_for_answers.html')
+            return wait_for_answers(request, game)
     return render(request, 'open_question.html', {
         'question': game.current and game.current.question_text,
         'summary': summary(game),
+        'cur': game.current and game.current.id,
     })
 
 def permutation_order_avail(game, answers):
@@ -198,3 +208,12 @@ def next_question(request):
             game.current = None
         game.save()
     return HttpResponseRedirect('/manage/')
+
+def cur_question_id(request):
+    game = current_game()
+    if game.current is None:
+        return HttpResponse('null', content_type="application/json")
+    return HttpResponse(json.dumps({
+        'cur': game.current.id,
+        'is_quiz': is_in_quiz(game, cur_answers(game)),
+    }), content_type="application/json")
