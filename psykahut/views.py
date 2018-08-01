@@ -10,19 +10,6 @@ from . import models
 def current_game():
     return models.Game.objects.last()
 
-def current_game_with_question():
-    try:
-        with transaction.atomic():
-            game = current_game()
-            if game.current is None:
-                game.current = random.choice(
-                    models.Question.objects.filter(topic=game.topic))
-            game.save()
-    except IntegrityError:
-        game = current_game()
-        assert game.current is not None
-    return game
-
 def cur_answers(game):
     return models.Answer.objects.filter(game=game, question=game.current)
 
@@ -34,8 +21,45 @@ def get_player(request):
     except models.Player.DoesNotExist:
         return
 
+def summary(game):
+    if not game.prev:
+        return
+    votes = models.Vote.objects.filter(
+        question=game.prev, game=game).select_related('voter')
+    colors = ['red', 'green', 'blue', 'brown', 'purple']
+    def votes_for(answer):
+        cur = [x for x in votes if x.answer == answer]
+        score_char = 'ח' if answer else '✓'
+        return {
+            'count':
+                ''.join(
+                    '<span style="color:%s">%s</span>' %
+                    (colors[i % len(colors)], score_char)
+                    for i in range(len(cur))),
+            'voters': [x.voter.name for x in cur],
+        }
+    answers = models.Answer.objects.filter(
+        question=game.prev, game=game)
+    leading_players = models.Player.objects.filter(game=game).order_by('-score')[:5]
+    return {
+        'question': game.prev.question_text,
+        'answers':
+            [{
+                'text': game.prev.answer_text,
+                'author': 'תשובה אמיתית',
+                'votes': votes_for(None),
+            }]
+            +
+            [{
+                'text': x.text,
+                'author': x.author.name,
+                'votes': votes_for(x),
+            } for x in answers],
+        'scores': leading_players,
+        }
+
 def index(request):
-    game = current_game_with_question()
+    game = current_game()
     player = get_player(request)
     if player is None or player.game != game:
         return render(request, 'welcome.html')
@@ -44,13 +68,14 @@ def index(request):
         if models.Vote.objects.filter(
             voter=player, game=game, question=game.current
             ).exists():
-            return HttpResponseRedirect('/summary/%d/' % game.current.id)
+            return render(request, 'wait_for_answers.html')
         return ask_quiz(request, game, answers)
     for answer in answers:
         if answer.author == player:
             return render(request, 'wait_for_answers.html')
     return render(request, 'open_question.html', {
-        'question': game.current.question_text,
+        'question': game.current and game.current.question_text,
+        'summary': summary(game),
     })
 
 def permutation_order_avail(game, answers):
@@ -73,7 +98,7 @@ def answer_quiz(request):
     answer = int(request.POST['answer'])
     print(answer)
     player = get_player(request)
-    game = current_game_with_question()
+    game = current_game()
     vote, created = models.Vote.objects.get_or_create(voter=player, question=game.current, game=game)
     if created:
         for x in cur_answers(player.game):
@@ -126,44 +151,11 @@ def open_question(request):
         break
     return HttpResponseRedirect('/')
 
-def summary(request, question_id):
-    game = current_game_with_question()
-    question = models.Question.objects.get(id=question_id)
-    if question == game.current:
-        return render(request, 'wait_for_answers.html')
-    votes = models.Vote.objects.filter(
-        question=question, game=game).select_related('voter')
-    def votes_for(answer):
-        cur = [x for x in votes if x.answer == answer]
-        return {
-            'count': len(cur),
-            'voters': [x.voter.name for x in cur],
-        }
-    answers = models.Answer.objects.filter(
-        question=question, game=game)
-    leading_players = models.Player.objects.filter(game=game).order_by('-score')[:5]
-    return render(request, 'summary.html', {
-        'question': question.question_text,
-        'answers':
-            [{
-                'text': question.answer_text,
-                'author': 'תשובה אמיתית',
-                'votes': votes_for(None),
-            }]
-            +
-            [{
-                'text': x.text,
-                'author': x.author.name,
-                'votes': votes_for(x),
-            } for x in answers],
-        'new_question': game.current.question_text if game.current else None,
-        'scores': leading_players,
-        })
-
 def manage(request):
     game = current_game()
     return render(request, 'manage_game.html', {
         'game': game,
+        'num_questions_asked': len(game.questions_asked.all()),
         'num_answers': len(models.Answer.objects.filter(game=game, question=game.current)),
         'num_votes': len(models.Vote.objects.filter(game=game, question=game.current)),
     })
@@ -175,6 +167,8 @@ def start_new(request):
     except models.Topic.DoesNotExist:
         return HttpResponseRedirect('/manage/')
     game = models.Game(topic=topic)
+    game.current = random.choice(
+        models.Question.objects.filter(topic=game.topic))
     num_answers = request.POST.get('num_answers')
     if num_answers:
         game.num_psych_answers = num_answers
@@ -183,7 +177,7 @@ def start_new(request):
 
 @require_POST
 def next_question(request):
-    game = current_game_with_question()
+    game = current_game()
     votes = models.Vote.objects.filter(question=game.current, game=game)
     asked = set(game.questions_asked.all())
     asked.add(game.current)
@@ -192,6 +186,7 @@ def next_question(request):
         if x not in asked]
     with transaction.atomic():
         game.questions_asked.add(game.current)
+        game.prev = game.current
         if questions_pool:
             game.current = random.choice(questions_pool)
         else:

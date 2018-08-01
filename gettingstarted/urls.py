@@ -14,6 +14,5 @@ urlpatterns = [
     url(r'^register/$', psykahut.views.register),
     url(r'^open_question/$', psykahut.views.open_question),
     url(r'^quiz/$', psykahut.views.answer_quiz),
-    path('summary/<int:question_id>/', psykahut.views.summary),
     path('admin/', admin.site.urls),
 ]

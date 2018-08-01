@@ -20,6 +20,7 @@ class Game(models.Model):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     questions_asked = models.ManyToManyField(Question, blank=True)
     current = models.ForeignKey(Question, blank=True, null=True, on_delete=models.CASCADE, related_name='current')
+    prev = models.ForeignKey(Question, blank=True, null=True, on_delete=models.CASCADE, related_name='prev')
     num_psych_answers = models.IntegerField(default=4)
     def __str__(self):
         return 'Game(%s, %s)' % (self.current or self.topic, self.started)
