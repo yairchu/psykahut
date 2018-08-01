@@ -10,7 +10,7 @@
     <form action="/open_question/" method="post">
       {% csrf_token %}
       <label for="answer">המצא תשובה נכונה או אמינה לשאלה:</label>
-      <input type="text" id="answer" name="answer" autofocus="autofocus" minlength="2" maxlength="120" size=80>
+      <input type="text" id="answer" name="answer" autofocus="autofocus" minlength="2" style="display:table-cell; width:100%">
     </form>
 
     {% include "refresher.html" %}
