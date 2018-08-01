@@ -1,37 +1,8 @@
 {% extends "psykahut_base.html" %}
 
 {% block content %}
-  {% if summary %}
-    <h2>{{summary.question}} - תוצאות</h2>
-    <ul>
-      {% for answer in summary.answers %}
-        <li>
-          {{answer.text}} ({{answer.author}}): {{answer.votes.count | safe}}
-          {% if answer.votes.voters %}
-            -
-            <span style="font-size:66%">
-              {% for voter in answer.votes.voters %}
-                {{voter}}
-                {% if not forloop.last %}
-                ,
-                {% endif %}
-              {% endfor %}
-            </span>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-    <h2>
-      ניקוד:
-    </h2>
-    <ul>
-      {% for player in summary.scores %}
-        <li>
-          {{player.name}}: {{player.score}}
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+  {% include "summary.html" %}
+
   {% if question %}
     <h2>
       {{question}}

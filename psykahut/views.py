@@ -158,6 +158,7 @@ def manage(request):
         'num_questions_asked': len(game.questions_asked.all()),
         'num_answers': len(models.Answer.objects.filter(game=game, question=game.current)),
         'num_votes': len(models.Vote.objects.filter(game=game, question=game.current)),
+        'summary': summary(game),
     })
 
 @require_POST

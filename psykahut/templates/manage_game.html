@@ -1,30 +1,35 @@
 {% extends "psykahut_base.html" %}
 
 {% block content %}
+  {% include "summary.html" %}
   <h2>
-    משחק
+    ניהול משחק
   </h2>
-  <p>
-    {{game.topic}} - {{game.started}} - {{num_questions_asked}}
-  </p>
   <h3>
-    {{game.current.question_text}}
+    {{game.topic}} - {{game.started}} - {{num_questions_asked}}
   </h3>
-  <ul>
-    <li>
-      {{num_answers}} תשובות
-    </li>
-    <li>
-      {{num_votes}} הצבעות
-    </li>
-    <li>
-      <form action="/manage/next/" method="post">
-        {% csrf_token %}
-        <input type="submit" value="המשך" />
-      </form>
-    </li>
-  </ul>
-  <h2>התחל משחק חדש:</h2>
+  {% if game.current %}
+    <h4>
+      {{game.current.question_text}}
+    </h4>
+    <ul>
+      <li>
+        {{num_answers}} תשובות
+      </li>
+      <li>
+        {{num_votes}} הצבעות
+      </li>
+      <li>
+        <form action="/manage/next/" method="post">
+          {% csrf_token %}
+          <input type="submit" value="המשך" />
+        </form>
+      </li>
+    </ul>
+  {% else %}
+  נגמר.
+  {% endif %}
+  <h3>התחל משחק חדש:</h3>
   <form action="/manage/start_new/" method="post">
     {% csrf_token %}
     <div>
