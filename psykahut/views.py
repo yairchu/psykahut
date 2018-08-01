@@ -181,20 +181,23 @@ def start_new(request):
 @require_POST
 def next_question(request):
     game = current_game()
-    players_to_update = set()
+    score_updates = {}
     for vote in models.Vote.objects.filter(question=game.current, game=game):
         if vote.answer is None:
             # Correct answer
-            vote.voter.score += 3
-            players_to_update.add(vote.voter)
+            who = vote.voter
+            delta = 3
         elif vote.voter == vote.answer.author:
-            vote.voter.score -= 3
-            players_to_update.add(vote.voter)
+            who = vote.voter
+            delta = -3
         else:
-            vote.answer.author.score += 1
-            players_to_update.add(vote.answer.author)
+            who = vote.answer.author
+            delta = 1
+        score_updates.setdefault(who.id, []).append(delta)
     with transaction.atomic():
-        for player in players_to_update:
+        for who, deltas in score_updates.items():
+            player = models.Player.objects.get(id=who)
+            player.score += sum(deltas)
             player.save()
 
     asked = set(game.questions_asked.all())
