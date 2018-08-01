@@ -1,20 +1,17 @@
-<html>
+{% extends "psykahut_base.html" %}
 
-<head>
-  <meta charset="utf-8" />
-</head>
-
-<body dir="rtl">
+{% block content %}
   <h2>
-    <span style="color:gray">פ</span>סייקאהווווווט!
+    משחק
   </h2>
   <p>
-    משחק נוכחי - {{game.topic}} - {{game.started}}
+    {{game.topic}} - {{game.started}}
   </p>
+  <h2>התחל משחק חדש:</h2>
   <form action="/manage/start_new/" method="post">
     {% csrf_token %}
     <div>
-      <label for="topic">התחל משחק חדש:</label>
+      <label for="topic">בחר:</label>
       <input type="text" id="topic" name="topic" />
     </div>
     <div>
@@ -23,5 +20,4 @@
     </div>
     <input type="submit" />
   </form>
-</body>
-</html>
+{% endblock %}
