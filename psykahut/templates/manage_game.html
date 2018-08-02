@@ -1,7 +1,9 @@
 {% extends "psykahut_base.html" %}
 
 {% block content %}
-  {% include "summary.html" %}
+  {% if not answers %}
+    {% include "summary.html" %}
+  {% endif %}
   <h2>
     ניהול משחק
   </h2>
@@ -12,19 +14,22 @@
     <h4>
       {{game.current.question_text}}
     </h4>
-    <ul>
-      <li>
-        {{num_answers}} תשובות
-      </li>
-      <li>
-        {{num_votes}} הצבעות
-      </li>
-      <li>
-        <form action="/manage/next/" method="post">
-          {% csrf_token %}
-          <input type="submit" value="המשך" />
-        </form>
-      </li>
+    {% if answers %}
+      <ul>
+        {% for answer in answers.answers %}
+          <li>
+            {{answer.text}}
+          </li>
+        {% endfor %}
+      </ul>
+      {{num_votes}} הצבעות
+    {% else %}
+      {{num_answers}} תשובות
+    {% endif %}
+    <form action="/manage/next/" method="post">
+      {% csrf_token %}
+      <input type="submit" value="המשך" />
+    </form>
     </ul>
   {% else %}
   נגמר.

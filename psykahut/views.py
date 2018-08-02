@@ -94,16 +94,23 @@ def permutation_order_avail(game, answers):
     perm_taken = set(x.permutation_order for x in answers)
     return list(set(range(game.num_psych_answers+1))-perm_taken)
 
+def quiz_data(game, answers):
+    ordered_answers = [(x.permutation_order, x.text) for x in answers]
+    [real_answer_pos] = permutation_order_avail(game, answers)
+    ordered_answers.append((real_answer_pos, game.current.answer_text))
+    ordered_answers.sort()
+    return {
+        'question': game.current.question_text,
+        'answers': [{'id': x, 'text': y} for x, y in ordered_answers],
+        'num_answers': len(ordered_answers),
+    }
+
 def ask_quiz(request, game, answers):
     ordered_answers = [(x.permutation_order, x.text) for x in answers]
     [real_answer_pos] = permutation_order_avail(game, answers)
     ordered_answers.append((real_answer_pos, game.current.answer_text))
     ordered_answers.sort()
-    return render(request, 'quiz.html', {
-        'question': game.current.question_text,
-        'answers': [{'id': x, 'text': y} for x, y in ordered_answers],
-        'num_answers': len(ordered_answers),
-    })
+    return render(request, 'quiz.html', quiz_data(game, answers))
 
 @require_POST
 def answer_quiz(request):
@@ -155,8 +162,10 @@ def open_question(request):
 
 def manage(request):
     game = current_game()
+    answers = cur_answers(game)
     return render(request, 'manage_game.html', {
         'game': game,
+        'answers': quiz_data(game, answers) if is_in_quiz(game, answers) else None,
         'num_questions_asked': len(game.questions_asked.all()),
         'num_answers': len(models.Answer.objects.filter(game=game, question=game.current)),
         'num_votes': len(models.Vote.objects.filter(game=game, question=game.current)),
