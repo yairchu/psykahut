@@ -91,7 +91,7 @@ def index(request):
     })
 
 def permutation_order_avail(game, answers):
-    perm_taken = set(x.permutation_order for x in answers)
+    perm_taken = {x.permutation_order for x in answers}
     return list(set(range(game.num_psych_answers+1))-perm_taken)
 
 def quiz_data(game, answers):
@@ -217,10 +217,7 @@ def next_question(request):
     with transaction.atomic():
         game.questions_asked.add(game.current)
         game.prev = game.current
-        if questions_pool:
-            game.current = random.choice(questions_pool)
-        else:
-            game.current = None
+        game.current = random.choice(questions_pool) if questions_pool else None
         game.save()
     return HttpResponseRedirect('/manage/')
 

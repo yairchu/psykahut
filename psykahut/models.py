@@ -13,7 +13,7 @@ class Question(models.Model):
     # The real answer for the question
     answer_text = models.CharField(max_length=200)
     def __str__(self):
-        return '%s: %s (%s)' % (self.topic, self.question_text, self.answer_text)
+        return f'{self.topic}: {self.question_text} ({self.answer_text})'
 
 class Game(models.Model):
     started = models.DateTimeField('date created', auto_now_add=True)
@@ -23,14 +23,14 @@ class Game(models.Model):
     prev = models.ForeignKey(Question, blank=True, null=True, on_delete=models.CASCADE, related_name='prev')
     num_psych_answers = models.IntegerField(default=4)
     def __str__(self):
-        return 'Game(%s, %s)' % (self.current or self.topic, self.started)
+        return f'Game({self.current or self.topic}, {self.started})'
 
 class Player(models.Model):
     name = models.CharField(max_length=200)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
     def __str__(self):
-        return '%s: %s' % (self.name, self.score)
+        return f'{self.name}: {self.score}'
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
@@ -43,8 +43,7 @@ class Answer(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
 
     def __str__(self):
-        return '%s: %s (%s)' % (
-            self.question.question_text, self.text, self.game.started)
+        return f'{self.question.question_text}: {self.text} ({self.game.started})'
 
 class Vote(models.Model):
     voter = models.ForeignKey(Player, on_delete=models.CASCADE)
@@ -56,4 +55,4 @@ class Vote(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
 
     def __str__(self):
-        return '%s: %s is %s' % (self.voter, self.question, self.answer)
+        return f'{self.voter}: {self.question} is {self.answer}'
