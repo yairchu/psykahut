@@ -179,8 +179,9 @@ def start_new(request):
     except models.Topic.DoesNotExist:
         return HttpResponseRedirect('/manage/')
     game = models.Game(topic=topic)
-    game.current = random.choice(
-        models.Question.objects.filter(topic=game.topic))
+    game.shuffle = 'shuffle' in request.POST
+    questions = models.Question.objects.filter(topic=game.topic)
+    game.current = random.choice(questions) if game.shuffle else questions[0]
     num_answers = request.POST.get('num_answers')
     if num_answers:
         game.num_psych_answers = num_answers
@@ -217,7 +218,7 @@ def next_question(request):
     with transaction.atomic():
         game.questions_asked.add(game.current)
         game.prev = game.current
-        game.current = random.choice(questions_pool) if questions_pool else None
+        game.current = (random.choice(questions_pool) if game.shuffle else questions_pool[0]) if questions_pool else None
         game.save()
     return HttpResponseRedirect('/manage/')
 

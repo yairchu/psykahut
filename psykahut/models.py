@@ -22,6 +22,7 @@ class Game(models.Model):
     current = models.ForeignKey(Question, blank=True, null=True, on_delete=models.CASCADE, related_name='current')
     prev = models.ForeignKey(Question, blank=True, null=True, on_delete=models.CASCADE, related_name='prev')
     num_psych_answers = models.IntegerField(default=4)
+    shuffle = models.BooleanField(default=True)
     def __str__(self):
         return f'Game({self.current or self.topic}, {self.started})'
 
